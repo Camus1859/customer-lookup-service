@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: devuser
       POSTGRES_DB: customers
     ports:
-      - 5432:5432
+      - 4000:5432
 
   adminer:
     image: adminer
@@ -21,4 +21,4 @@ services:
     environment:
       REDIS_PASSWORD: devredispassword
     ports:
-      - 6379:6379
+      - 5000:6379
