@@ -1,0 +1,24 @@
+# Use postgres/example user/password credentials
+
+services:
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: devpassword
+      POSTGRES_USER: devuser
+      POSTGRES_DB: customers
+    ports:
+      - 5432:5432
+
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+  
+  redis-server:
+    image: redis
+    environment:
+      REDIS_PASSWORD: devredispassword
+    ports:
+      - 6379:6379
