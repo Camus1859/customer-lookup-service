@@ -8,6 +8,8 @@ import { Pool } from "pg";
 const app: Express = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(express.json());
+
 const pool = new Pool({
   user: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
@@ -130,6 +132,34 @@ app.get("/api/customers/:id/orders", async (req, res) => {
   const resp = await pool.query(query);
 
   res.send(resp.rows);
+});
+
+app.put("/api/customers/:id", async (req, res) => {
+  const customerId = Number(req.params.id);
+  const name = req.body.name;
+
+  if (!customerId) {
+    throw new Error(`Customer with id:${customerId} does not exist`);
+  }
+
+  if (!name) {
+    throw new Error(`Name value of:${name} is not allowed`);
+  }
+
+  const query = {
+    name: "update-users-name",
+    text: `UPDATE customers SET name = $1 WHERE id = $2`,
+    values: [name, customerId],
+  };
+
+  const resp = await pool.query(query);
+
+  try {
+    await redisClient.del(`customer:${customerId}`);
+  } catch (e) {
+    console.error(e);
+  }
+  res.send(resp);
 });
 
 app.listen(PORT, () => {
