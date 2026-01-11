@@ -50,14 +50,19 @@ const isRedisAlive = async () => {
       throw new Error("Redis is down!");
     }
 
-    return { success: 200 };
+    return { redisStatus: pong };
   } catch (e) {
     console.error(e);
+    return { success: false, error: e };
   }
 };
 
 const checkRedisForCustomer = async (id: number) => {
-  return await redisClient.get(`customer:${id.toString()}`);
+  try {
+    return await redisClient.get(`customer:${id.toString()}`);
+  } catch (e) {
+    return null;
+  }
 };
 
 app.get("/health", async (req: Request, res: Response) => {
@@ -93,12 +98,18 @@ app.get("/api/customers/:id", async (req, res) => {
     };
 
     const resp = await pool.query(query);
-    redisClient.set(
-      `customer:${customerId.toString()}`,
-      JSON.stringify(resp.rows[0]),
-      "EX",
-      60
-    );
+
+    try {
+      await redisClient.set(
+        `customer:${customerId.toString()}`,
+        JSON.stringify(resp.rows[0]),
+        "EX",
+        60
+      );
+    } catch (e) {
+      console.log(e);
+    }
+
     res.send(resp.rows[0]);
   }
 });
