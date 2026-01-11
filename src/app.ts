@@ -56,6 +56,10 @@ const isRedisAlive = async () => {
   }
 };
 
+const checkRedisForCustomer = async (id: number) => {
+  return await redisClient.get(`customer:${id.toString()}`);
+};
+
 app.get("/health", async (req: Request, res: Response) => {
   const redisHealthCheckResults = await isRedisAlive();
   const postgresHealthCheckResults = await isPostgresAlive();
@@ -63,6 +67,58 @@ app.get("/health", async (req: Request, res: Response) => {
     redis: redisHealthCheckResults,
     postgres: postgresHealthCheckResults,
   });
+});
+
+app.get("/api/customers/:id", async (req, res) => {
+  const customerId = Number(req.params.id);
+
+  if (!customerId) {
+    throw new Error(`Customer with id:${customerId} does not exist`);
+  }
+
+  const redisHasCustomerJSON = await checkRedisForCustomer(customerId);
+
+  if (redisHasCustomerJSON) {
+    console.log("Cache hit!");
+
+    const redisCustomer = JSON.parse(redisHasCustomerJSON);
+    res.send(redisCustomer);
+  } else {
+    console.log("Cache miss!");
+
+    const query = {
+      name: "fetch-customer",
+      text: "SELECT * FROM customers WHERE id=$1",
+      values: [customerId],
+    };
+
+    const resp = await pool.query(query);
+    redisClient.set(
+      `customer:${customerId.toString()}`,
+      JSON.stringify(resp.rows[0]),
+      "EX",
+      60
+    );
+    res.send(resp.rows[0]);
+  }
+});
+
+app.get("/api/customers/:id/orders", async (req, res) => {
+  const customerId = Number(req.params.id);
+
+  if (!customerId) {
+    throw new Error(`Customer with id:${customerId} does not exist`);
+  }
+
+  const query = {
+    name: "fetch-order",
+    text: "SELECT * FROM orders WHERE customer_id=$1",
+    values: [customerId],
+  };
+
+  const resp = await pool.query(query);
+
+  res.send(resp.rows);
 });
 
 app.listen(PORT, () => {
