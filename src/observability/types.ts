@@ -1,13 +1,13 @@
 export type DashBoardMetrics = {
-  CacheHit: number;
-  CacheMiss: number;
-  Error: number;
-  AverageLatency: number;
+  cacheHit: number;
+  cacheMiss: number;
+  error: number;
+  averageLatency: number;
 };
 
 export type Outcome = "HIT" | "MISS" | "ERROR" | "SUCCESS" | "SKIPPED";
 
-export type Step = "Cache_Check" | "DB_QUERY" | "CACHE_WRITE";
+export type Step = "CACHE_CHECK" | "DB_QUERY" | "CACHE_WRITE";
 
 export type TraceStep = {
   step: Step;
