@@ -1,3 +1,4 @@
+import { QueryResult } from "pg";
 import { redisClient } from "./redis";
 
 const checkRedisForCustomer = async (id: number) => {
@@ -8,7 +9,7 @@ const checkRedisForCustomer = async (id: number) => {
   }
 };
 
-const setCustomerToRedisWithTTL = async (id: number, resp: any) => {
+const setCustomerToRedisWithTTL = async (id: number, resp: QueryResult) => {
   const TTL = Math.floor(Math.random() * (70 - 50) + 50);
 
   await redisClient.set(
