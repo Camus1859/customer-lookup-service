@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import express, { Express, Request, Response } from "express";
+import express, { Express, NextFunction, Request, Response } from "express";
 import { isPostgresAlive } from "./db/postgres";
 import { isRedisAlive } from "./cache/redis";
 import {
@@ -87,6 +87,11 @@ app.put("/api/customers/:id", async (req, res) => {
     console.error(e);
   }
   res.send(resp);
+});
+
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error(err.message);
+  res.status(500).json({ error: "Internal server error" });
 });
 
 app.listen(PORT, () => {
